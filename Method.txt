@@ -1,0 +1,106 @@
+package com.dashboard.model;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+
+import com.dashboard.dbutil.DBUtil;
+
+public class IncMethod {
+	public static List<List<String>> getTotalticketsAssigned(String group, Date from_date, Date to_date ) throws SQLException {
+		
+		Connection conn = DBUtil.getConnectionSer();
+		if(from_date==null && to_date==null)
+		{
+		String sql = "select * from (select UH_ASSIGNEE_FULL_NAME, P1 ,P2, P3, P4, P5, (P1+P2+P3+P4+P5) total from (select UH_ASSIGNEE_FULL_NAME, PRIORITY_CODE from sm_dm.sm_incidents where ASSIGNMENT = ? AND TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-32) pivot (count(*) for PRIORITY_CODE in ('1' as P1,'2' as P2,'3' as P3,'4' as P4,'5' as P5))order by total DESC)";
+		}
+		else
+		{
+		String sql = "select * from (select UH_ASSIGNEE_FULL_NAME, P1 ,P2, P3, P4, P5, (P1+P2+P3+P4+P5) total from (select UH_ASSIGNEE_FULL_NAME, PRIORITY_CODE from sm_dm.sm_incidents where ASSIGNMENT = ? between open_time = ? and close time = ?) pivot (count(*) for PRIORITY_CODE in ('1' as P1,'2' as P2,'3' as P3,'4' as P4,'5' as P5))order by total DESC)";
+
+		}
+		PreparedStatement ps = null;
+		ps = conn.prepareStatement(sql) ;
+		ps.setString(1, group);
+		ResultSet rs = ps.executeQuery();
+		List<List<String>> finaldetails = new ArrayList<List<String>>();
+		while(rs.next()) {
+			List<String> details = new ArrayList<String>();
+		details.add(rs.getString("UH_ASSIGNEE_FULL_NAME"));
+		details.add(rs.getString("P1"));
+		details.add(rs.getString("P2"));
+		details.add(rs.getString("P3"));
+		details.add(rs.getString("P4"));
+		details.add(rs.getString("P5"));
+		details.add(rs.getString("TOTAL"));
+		finaldetails.add(details);
+		}	
+		return finaldetails;	
+}
+	
+	public static List<List<String>> getData(String group) throws SQLException {
+		Connection conn = DBUtil.getConnectionSer();
+		
+		//String sql = "select ' Ref 2 Category ' APP_NAME , sum(total) ,sum(batch) batch ,sum(data) data ,sum(Security) Security ,sum(SmartView) SmartView, sum(OpsReadiness) OpsReadiness,  sum(OUAdd) OUAdd, sum(UserHelp) UserHelp from (select * from(select uh_reference_number_2,(Batch+Data+Security+SmartView+OpsReadiness+OUAdd+UserHelp) total, Batch ,Data ,Security, SmartView, OpsReadiness , OUAdd , UserHelp from (select uh_reference_number_1,uh_reference_number_2 from sm_dm.sm_incidents where ASSIGNMENT = 'REPORTING (COR) - APP' AND TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-32) pivot (count(*) for uh_reference_number_1 in ('Batch' as Batch,'Data' as Data,'Security' as Security,'Smart View' as SmartView,'Ops Readiness' as OpsReadiness,'OU Add' as OUAdd,'User Help' as UserHelp)))) union select uh_reference_number_2, total, Batch , Data,Security,SmartView,OpsReadiness,OUAdd,UserHelp from(select uh_reference_number_2,(Batch+Data+Security+OpsReadiness+OUAdd+UserHelp) total, Batch ,Data,Security,SmartView,OpsReadiness,OUAdd,UserHelp from (select uh_reference_number_1,uh_reference_number_2 from sm_dm.sm_incidents where ASSIGNMENT = 'REPORTING (COR) - APP' AND TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-32) pivot (count(*) for uh_reference_number_1 in ('Batch' as Batch,'Data' as Data,'Security' as Security,'Smart View' as SmartView,'Ops Readiness' as OpsReadiness,'OU Add' as OUAdd,'User Help' as UserHelp)))";
+		String sql = "select ' Ref 2 Category ' APP_NAME , sum(total) ,sum(batch) batch ,sum(data) data ,sum(Security) Security ,sum(SmartView) SmartView, sum(OpsReadiness) OpsReadiness,  sum(OUAdd) OUAdd, sum(UserHelp) UserHelp from (select * from(select uh_reference_number_2,(Batch+Data+Security+SmartView+OpsReadiness+OUAdd+UserHelp) total, Batch ,Data ,Security, SmartView, OpsReadiness , OUAdd , UserHelp from (select uh_reference_number_1,uh_reference_number_2 from sm_dm.sm_incidents where ASSIGNMENT = ? AND TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-32) pivot (count(*) for uh_reference_number_1 in ('Batch' as Batch,'Data' as Data,'Security' as Security,'SmartView' as SmartView,'Ops Readiness' as OpsReadiness,'OU Add' as OUAdd,'User Help' as UserHelp)))) union select uh_reference_number_2, total, Batch , Data,Security,SmartView,OpsReadiness,OUAdd,UserHelp from(select uh_reference_number_2,(Batch+Data+Security+OpsReadiness+OUAdd+UserHelp) total, Batch ,Data,Security,SmartView,OpsReadiness,OUAdd,UserHelp from (select uh_reference_number_1,uh_reference_number_2 from sm_dm.sm_incidents where ASSIGNMENT = ? AND TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-32) pivot (count(*) for uh_reference_number_1 in ('Batch' as Batch,'Data' as Data,'Security' as Security,'SmartView' as SmartView,'Ops Readiness' as OpsReadiness,'OU Add' as OUAdd,'User Help' as UserHelp)))";
+		PreparedStatement ps = null;
+		ps = conn.prepareStatement(sql) ;
+		ps.setString(1, group);
+		ps.setString(2, group);
+		ResultSet rs = ps.executeQuery();
+		List<List<String>> finaldetails = new ArrayList<List<String>>();
+		while(rs.next()) {
+			List<String> details1 = new ArrayList<String>();
+		details1.add(rs.getString("APP_NAME"));
+		details1.add(rs.getString("SUM(TOTAL)"));
+		details1.add(rs.getString("BATCH"));
+		details1.add(rs.getString("DATA"));
+		details1.add(rs.getString("SECURITY"));
+		details1.add(rs.getString("SMARTVIEW"));
+		details1.add(rs.getString("OPSREADINESS"));
+		details1.add(rs.getString("OUADD"));
+		details1.add(rs.getString("USERHELP"));
+		finaldetails.add(details1);
+		}
+		return finaldetails;
+	}
+	
+	   public static  List<List<String>>  getTotalCounts(String group) throws SQLException {
+		   
+		Connection conn = DBUtil.getConnectionSer();
+		/*String sql = "select Alias,TOTALCOUNT,'12' INC_Tickets_Breach,'10' INC_Closed_in_day from (select ' Week' Alias ,count(*) TotalCount from sm_dm.sm_incidents where ASSIGNMENT = '"+text1+"' AND TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-9 union select ' Previous week' as PreviousWeek,count(*)from sm_dm.sm_incidents where ASSIGNMENT = '"+text1+"' and TO_DATE(open_TIME,'DD-MM-YY') between sysdate-17 and sysdate-9 union select ' Previous Month' as PreviousMonth,count (*)from sm_dm.sm_incidents where ASSIGNMENT = '"+text1+"' AND open_TIME BETWEEN add_months(trunc(sysdate,'mm'),-1) and add_months(trunc(sysdate,'mm'),-0) union select ' Previous Year' as PreviousYear,count (*)from sm_dm.sm_incidents where ASSIGNMENT ='"+text1+"' AND extract(year from to_date(to_char(open_TIME,'DD-MON-YYYY'),'DD/MM/YYYY'))=extract(year from sysdate)-1)order by TotalCount ASC";*/
+		//String sql = "SELECT * FROM (select aa.Alias,totalcount,trunc(((TotalCountday/totalcount)*100),2)||'%' as Inc_Closed_in_day from (select ' Week' Alias ,count(*) TotalCount from sm_dm.sm_incidents where ASSIGNMENT = 'REPORTING (COR) - APP' AND TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-9) aa,(select ' Week' Alias , count(*) as TotalCountday  from (select(TO_DATE(TO_CHAR(CLOSE_TIME, 'YYYY-MM-DD'), 'YYYY-MM-DD')- TO_DATE(TO_CHAR(OPEN_TIME, 'YYYY-MM-DD') , 'YYYY-MM-DD')) as diff from sm_dm.sm_incidents where Assignment= 'REPORTING (COR) - APP' and TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-9) where diff <=1) bb where aa.Alias=bb.alias union select  aa.Previousweek,totalcount,trunc(((TotalCountday/totalcount)*100),2)||'%' as Inc_Closed_in_day from (select ' Previous week' as PreviousWeek,count(*) totalcount from sm_dm.sm_incidents where ASSIGNMENT = 'REPORTING (COR) - APP' and TO_DATE(open_TIME,'DD-MM-YY') between sysdate-17 and sysdate-9) aa, (select ' Previous week' as PreviousWeek, count(*) TotalCountday  from (select(TO_DATE(TO_CHAR(CLOSE_TIME, 'YYYY-MM-DD'), 'YYYY-MM-DD')- TO_DATE(TO_CHAR(OPEN_TIME, 'YYYY-MM-DD') , 'YYYY-MM-DD')) as diff from sm_dm.sm_incidents where Assignment= 'REPORTING (COR) - APP'and TO_DATE(open_TIME,'DD-MM-YY') between sysdate-18 and sysdate-9) where diff <=1) bb where aa.Previousweek = bb.Previousweek union select  aa.PreviousMonth,totalcount,trunc(((TotalCountday/totalcount)*100),2)||'%' as Inc_Closed_in_day from (select ' Previous Month' as PreviousMonth,count (*) totalcount from sm_dm.sm_incidents where ASSIGNMENT = 'REPORTING (COR) - APP' AND open_TIME BETWEEN add_months(trunc(sysdate,'mm'),-1) and add_months(trunc(sysdate,'mm'),-0)) aa, (select ' Previous Month' as PreviousMonth,count(*) TotalCountday from (select(TO_DATE(TO_CHAR(CLOSE_TIME, 'YYYY-MM-DD'), 'YYYY-MM-DD')- TO_DATE(TO_CHAR(OPEN_TIME, 'YYYY-MM-DD') , 'YYYY-MM-DD')) as diff from sm_dm.sm_incidents where Assignment= 'REPORTING (COR) - APP'AND open_TIME BETWEEN add_months(trunc(sysdate,'mm'),-1) and add_months(trunc(sysdate,'mm'),-0)) where diff <=1) bb where aa.PreviousMonth = bb.PreviousMonth union select  aa.PreviousYear,totalcount,trunc(((TotalCountday/totalcount)*100),2)||'%' as Inc_Closed_in_day from (select ' Previous Year' as PreviousYear,count (*) totalcount from sm_dm.sm_incidents where ASSIGNMENT = 'REPORTING (COR) - APP' AND extract(year from to_date(to_char(open_TIME,'DD-MON-YYYY'),'DD/MM/YYYY'))=extract(year from sysdate)-1) aa, (select ' Previous Year' as PreviousYear, count (*) TotalCountday  from (select(TO_DATE(TO_CHAR(CLOSE_TIME, 'YYYY-MM-DD'), 'YYYY-MM-DD')- TO_DATE(TO_CHAR(OPEN_TIME, 'YYYY-MM-DD') , 'YYYY-MM-DD')) as diff from sm_dm.sm_incidents where Assignment= 'REPORTING (COR) - APP' ANd extract(year from to_date(to_char(open_TIME,'DD-MON-YYYY'),'DD/MM/YYYY'))=extract(year from sysdate)-1) where diff <=1) bb where aa.PreviousYear = bb.PreviousYear) ORDER BY Totalcount ASC";
+		String sql = "SELECT * FROM (select aa.Alias,totalcount,trunc(((TotalCountday/totalcount)*100),2)||'%' as Inc_Closed_in_day from(select ' Week' Alias ,count(*) TotalCount from sm_dm.sm_incidents where ASSIGNMENT = ? AND problem_status != 'Cancelled' AND TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-8) aa,(select ' Week' Alias , count(*) as TotalCountday  from (select(TO_DATE(TO_CHAR(CLOSE_TIME, 'YYYY-MM-DD'), 'YYYY-MM-DD')- TO_DATE(TO_CHAR(OPEN_TIME, 'YYYY-MM-DD') , 'YYYY-MM-DD')) as diff from sm_dm.sm_incidents where Assignment= ? and TO_DATE(open_TIME,'DD-MM-YY')>=sysdate-9) where diff <=1) bb where aa.Alias=bb.alias union select  aa.Previousweek,totalcount,trunc(((TotalCountday/totalcount)*100),2)||'%' as Inc_Closed_in_day from (select ' Week'||'('||trim(TO_CHAR(SYSDATE-18,'DD-MM-YYYY') )||')' Previousweek ,count(*) totalcount from sm_dm.sm_incidents where ASSIGNMENT = ? AND problem_status != 'Cancelled' and TO_DATE(open_TIME,'DD-MM-YY') between sysdate-18 and sysdate-9) aa, (select ' Week'||'('||trim(TO_CHAR(SYSDATE-18,'DD-MM-YYYY') )||')' Previousweek , count(*) TotalCountday  from (select(TO_DATE(TO_CHAR(CLOSE_TIME, 'YYYY-MM-DD'), 'YYYY-MM-DD')- TO_DATE(TO_CHAR(OPEN_TIME, 'YYYY-MM-DD') , 'YYYY-MM-DD')) as diff from sm_dm.sm_incidents where Assignment= ? and TO_DATE(open_TIME,'DD-MM-YY') between sysdate-18 and sysdate-9) where diff <=1) bb where aa.Previousweek = bb.Previousweek union select  aa.PreviousMonth,totalcount,trunc(((TotalCountday/totalcount)*100),2)||'%' as Inc_Closed_in_day from (select ' Month'||'('||trim((TO_CHAR(ADD_MONTHS(SYSDATE,'-1'),'Month')))||')' PreviousMonth ,count (*) totalcount from sm_dm.sm_incidents where ASSIGNMENT = ? AND problem_status != 'Cancelled' AND open_TIME BETWEEN add_months(trunc(sysdate,'mm'),-1) and add_months(trunc(sysdate,'mm'),-0)) aa, (select ' Month'||'('||trim((TO_CHAR(ADD_MONTHS(SYSDATE,'-1'),'Month')))||')' PreviousMonth ,count(*) TotalCountday from (select(TO_DATE(TO_CHAR(CLOSE_TIME, 'YYYY-MM-DD'), 'YYYY-MM-DD')- TO_DATE(TO_CHAR(OPEN_TIME, 'YYYY-MM-DD') , 'YYYY-MM-DD')) as diff from sm_dm.sm_incidents where Assignment= ? AND open_TIME BETWEEN add_months(trunc(sysdate,'mm'),-1) and add_months(trunc(sysdate,'mm'),-0)) where diff <=1) bb where aa.PreviousMonth = bb.PreviousMonth union select  aa.Yeartodate,totalcount,trunc(((TotalCountday/totalcount)*100),2)||'%' as Inc_Closed_in_day from (select ' Year to date' as Yeartodate,count (*) totalcount from sm_dm.sm_incidents where ASSIGNMENT = ? AND problem_status != 'Cancelled' AND TO_char(open_TIME,'YYYY')>=2020) aa, (select ' Year to date' as Yeartodate,count(*) TotalCountday from (select(TO_DATE(TO_CHAR(CLOSE_TIME, 'YYYY-MM-DD'), 'YYYY-MM-DD')- TO_DATE(TO_CHAR(OPEN_TIME, 'YYYY-MM-DD') , 'YYYY-MM-DD')) as diff from sm_dm.sm_incidents where Assignment= ? AND TO_char(open_TIME,'YYYY')>=2020) where diff <=1) bb where aa.Yeartodate = bb.Yeartodate union select  aa.PreviousYear,totalcount,trunc(((TotalCountday/totalcount)*100),2)||'%' as Inc_Closed_in_day from (select ' Year'||'('||trim((TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'YEAR'),-1),'YYYY')))||')' as PreviousYear ,count (*) totalcount from sm_dm.sm_incidents where ASSIGNMENT =? AND problem_status != 'Cancelled' AND extract(year from to_date(to_char(open_TIME,'DD-MON-YYYY'),'DD/MM/YYYY'))=extract(year from sysdate)-1)aa, (select ' Year'||'('||trim((TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE,'YEAR'),-1),'YYYY')))||')' as PreviousYear , count (*) TotalCountday  from (select(TO_DATE(TO_CHAR(CLOSE_TIME, 'YYYY-MM-DD'), 'YYYY-MM-DD')- TO_DATE(TO_CHAR(OPEN_TIME, 'YYYY-MM-DD') , 'YYYY-MM-DD')) as diff from sm_dm.sm_incidents where Assignment= ?  ANd extract(year from to_date(to_char(open_TIME,'DD-MON-YYYY'),'DD/MM/YYYY'))=extract(year from sysdate)-1) where diff <=1) bb where aa.PreviousYear = bb.PreviousYear) ORDER BY Totalcount ASC";
+		PreparedStatement ps = null;
+		ps = conn.prepareStatement(sql) ;
+		ps.setString(1, group);
+		ps.setString(2, group);
+		ps.setString(3, group);
+		ps.setString(4, group);
+		ps.setString(5, group);
+		ps.setString(6, group);
+		ps.setString(7, group);
+		ps.setString(8, group);
+		ps.setString(9, group);
+		ps.setString(10, group);
+		ResultSet rs = ps.executeQuery();
+		List<List<String>> finaldetails = new ArrayList<List<String>>();
+		while(rs.next()) {
+			List<String> details2 = new ArrayList<String>();
+		details2.add(rs.getString("ALIAS"));
+		details2.add(rs.getString("TOTALCOUNT"));
+		/*details2.add(rs.getString("INC_Tickets_Breach"));*/
+		details2.add(rs.getString("INC_CLOSED_IN_DAY"));
+		
+		finaldetails.add(details2);	
+		}
+		
+		return finaldetails;
+		
+	}
+}

@@ -1,0 +1,382 @@
+<%@page import="com.dashboard.dao.UserDao"%>
+<%@ taglib prefix='c' uri='http://java.sun.com/jsp/jstl/core' %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
+<%@page import="java.time.format.DateTimeFormatter"%>
+<%@page import="java.time.LocalDate"%>
+
+<%@ page import="com.dashboard.model.IncMethod"%>
+ 
+<%@page language="java" import="java.util.*"%>
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <title>Incident Statistics</title>
+  
+   <!-- add icon link -->
+        <link rel = "icon" href = "assets/img/CFR.png" type = "image/png">
+  
+
+  <!-- Custom fonts for this template-->
+  <link href="assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
+
+  <!-- Custom styles for this template-->
+  <link href="assets/css/ams.min.css" rel="stylesheet">
+  
+  <!-- Custom styles for this page -->
+  <link href="assets/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+</head>
+<style>
+table, td, th {  
+  
+  border: 1px solid Black;
+  text-align: left;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+th, td {
+  padding: 10px;
+}
+th {
+  background-color: #669999;
+  color: white;
+}
+tr:hover {background-color:#f5f5f5;}
+tr:nth-child(even) {background-color:  #e0ebeb;}
+
+input[type=text], select {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  }
+  input[type=submit] {
+  width: 100%;
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+
+</style>
+<body id="page-top">
+
+<!-- Page Wrapper -->
+  <div id="wrapper">
+    <c:if test="${group!=null }">
+    <!-- Sidebar Inclusion Script-->
+	<jsp:include page="sidebarClient.jsp" />
+	<!-- Script Ends -->
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+      <!-- Main Content -->
+      <div id="content">
+
+        <!-- Topbar Inclusion Script-->
+		<jsp:include page="topbarClient.jsp" />
+		<!-- Script Ends -->
+
+          <!-- Begin Page Content -->
+        <div class="container-fluid">
+
+          <!-- Navigation Indicator -->
+	      <nav aria-label="breadcrumb">
+  			<ol class="breadcrumb rounded-pill">
+    		  <li class="breadcrumb-item"><a href="dashboard.jsp">Dashboard</a></li>
+    		  <li class="breadcrumb-item">Incident Statistics</li>
+    		 </ol>
+		  </nav>
+
+          <!-- Content Row -->
+          <div class="row">
+            <div class="col">
+              <div class="card">
+                <c:if test='${status=="positiveResult" }'>
+			  	  <div class="alert alert-success alert-dismissible fade show" role="alert">
+			        <%=request.getAttribute("message")%>
+			        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+			      </div>
+			    </c:if>
+			    <c:if test='${ status=="negativeResult"}'>
+			  	  <div class="alert alert-danger alert-dismissible fade show" role="alert">
+			        <strong>Sorry!</strong> <%=request.getAttribute("message")%>
+			        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+			      </div>
+			    </c:if>
+                <div class="card-header bg-primary text-white text-uppercase font-weight-bold text-center">
+                  Incident Statistics
+                </div>
+                <div class="card-body">
+                     <%
+ HttpSession sess = request.getSession() ;
+ String groups[] = (String[]) session.getAttribute("group") ;
+ for(int i=0;i<groups.length;i++)
+ {
+ System.out.println(groups[i]);
+ }
+  /* String group = groups[0] ; */
+ %>
+      
+      </div>
+     
+      <div style="overflow-x:auto;padding:0px"> 
+      
+		<h2 align="center"><b>Ticket Volume</b></h2>
+		
+	<table align='center'>
+		
+		<tr>
+		<th></th>
+			<th>Total Count of incident tickets</th>
+		<!-- 	<th>% of INC Tickets Over P5 Breach time</th> -->
+			<th>% of INC Closed in less than a day</th>
+		</tr> 
+		
+	   <%
+	   List<List<String>> details2 = null;
+		for(int j=0; j<=groups.length;j++){
+	   details2 =IncMethod.getTotalCounts(groups[j]);
+		}
+		%>
+		<%
+		    ListIterator<List<String>> itr2 = details2.listIterator();
+		%>
+		<%
+		String[] arr2 ;
+		List<String> c;
+		
+		while (itr2.hasNext()) {	 
+			c= itr2.next();
+		%>
+		<tr>
+		<td><%=c.get(0)%></td>
+		<td><%=c.get(1)%></td>
+	    <td><%=c.get(2)%></td> 
+		<%-- <td><%=c.get(2)%></td> --%>
+		
+	    </tr>  
+	    <%
+			 } 
+		%>  
+</table>	
+<br><br>
+
+<h2 align="center"><b>INC Ticket Assignment Statistics</b></h2>
+	<Form action = "#"method="get"><div align='right'>
+	<label for ="Open_Time">From Date</label>
+<input type ="date" name="From_Date">
+<label for ="Close_Time">To Date</label>
+<input type ="date" name="To_Date">
+<Button type ="submit" value = "Submit">Submit</Button>
+</div></Form>
+	  <table align='center'> 
+ 		<tr>
+			<th>Name</th>
+			<th>Priority 1</th>
+			<th>Priority 2</th>
+			<th>Priority 3</th>
+			<th>Priority 4</th>
+			<th>Priority 5</th>
+			<th>Total Tickets Assigned</th>
+		</tr>  
+		<%
+		String from_date = (String)request.getParameter("From_Date");
+		String to_date = (String)request.getParameter("To_Date");
+		System.out.println(from_date+""+to_date);
+		DateTimeFormatter Format1 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		LocalDate From_date=null;
+		LocalDate To_date=null;
+		String open_time=null;
+		String close_time=null;
+		if(from_date!=null && to_date!=null)
+		{
+		From_date =LocalDate.parse(from_date,Format1);
+		To_date =LocalDate.parse(to_date,Format1);
+		System.out.println(From_date.toString()+""+To_date.toString());
+		DateTimeFormatter Format2 = DateTimeFormatter.ofPattern("dd-MMM-yy");
+		System.out.println(Format2.format(From_date));
+	    open_time = Format2.format(From_date);
+		close_time = Format2.format(To_date);
+		}
+		
+		List<List<String>> details = null;
+			 details = IncMethod.getTotalticketsAssigned(groups[].class,open_time,close_time); 
+		%>
+		<%
+			 ListIterator<List<String>> itr = details.listIterator(); 
+		%>
+		<%
+		 String[] arr ;
+		List<String> a; 
+		 
+		while (itr.hasNext()) {	 
+			 a= itr.next(); 
+		%>
+		<tr>
+	    <td><%=a.get(0)%></td>
+		<td><%=a.get(1)%></td>
+		<td><%=a.get(2)%></td>
+		<td><%=a.get(3)%></td>
+		<td><%=a.get(4)%></td>
+	    <td><%=a.get(5)%></td>
+	    <td><%=a.get(6)%></td>
+		</tr> 
+	   <%
+			 } 
+		%>  
+	 </table><br><br>
+	 	
+	 <h2 align="center"><b>INC Ticket Reference Category (Monthly)</b></h2>
+		
+	 <table align='center'> 
+		
+		<tr>
+			<th>App_Name</th>
+			<th>Total</th>
+			<th>Batch</th>
+			<th>Data</th>
+			<th>Security</th>
+			<th>Smart View</th>
+			<th>Ops Readiness</th>
+			<th>OU Add</th>
+			<th>User Help</th>
+		</tr> 
+		
+		<%
+		List<List<String>> details1 = null;
+		for(int j=0; j<=groups.length;j++){
+		 details1 = IncMethod.getData(groups[j]);
+		}
+		%>
+		<%
+		    ListIterator<List<String>> itr1 = details1.listIterator();
+		%>
+		<%
+		String[] arr1 ;
+		List<String> b;
+		
+		while (itr1.hasNext()) {	 
+			 b= itr1.next();
+		%>
+		<tr>
+		<td><%=b.get(0)%></td>
+		<td><%=b.get(1)%></td>
+		<td><%=b.get(2)%></td>
+		<td><%=b.get(3)%></td>
+		<td><%=b.get(4)%></td>
+	    <td><%=b.get(5)%></td>
+	    <td><%=b.get(6)%></td>
+	    <td><%=b.get(7)%></td>
+	    <td><%=b.get(8)%></td>
+	    
+	    </tr>
+	    <%
+			 } 
+		%>  
+		
+		</table> 
+	 
+	 </div> 
+	 
+	       </div>
+      <!-- End of Main Content -->
+
+      <!-- Footer -->
+      <footer class="sticky-footer bg-white">
+        <div class="container my-auto">
+          <div class="copyright text-center my-auto">
+            <span>Copyright &copy; CFR</span>
+          </div>
+        </div>
+      </footer>
+      <!-- End of Footer -->
+
+    </div>
+    <!-- End of Content Wrapper -->
+  </c:if>
+  </div>
+  <!-- End of Page Wrapper -->
+
+  <!-- Scroll to Top Button-->
+  <a class="scroll-to-top rounded" href="#page-top">
+    <i class="fas fa-angle-up"></i>
+  </a>
+
+  <!-- Logout Modal-->
+  <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">x</span>
+          </button>
+        </div>
+        <div class="modal-body">Select "Exit" below if you are ready to end your current session.</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+          <a class="btn btn-primary" href="LogoutController">Exit</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap core JavaScript-->
+  <script src="assets/vendor/jquery/jquery.min.js"></script>
+  <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Core plugin JavaScript-->
+  <script src="assets/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+  <!-- Custom scripts for all pages-->
+  <script src="assets/js/ams.min.js"></script>
+
+  <!-- Page level plugins -->
+  <script src="assets/vendor/chart.js/Chart.min.js"></script>
+  <!-- Page level plugins -->
+  <script src="assets/vendor/datatables/jquery.dataTables.min.js"></script>
+  <script src="assets/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+  <!-- Page level custom scripts -->
+  <script src="assets/js/datatables-demo.js"></script>
+  
+  <script>
+    $(document).ready(function(){
+      $('[data-toggle="tooltip"]').tooltip();   
+    });
+  </script>
+
+  <!-- Page level custom scripts -->
+ 
+    <script src="assets/js/ams_utility_function.js"></script>
+ 
+  <c:if test="${group==null }">
+    <jsp:include page="sessionExpired.jsp" />
+  </c:if>
+	 
+	  
+</body>
+</html>
